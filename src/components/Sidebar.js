@@ -69,7 +69,7 @@ function Sidebar() {
           <HeartPulse className="w-5 h-5 text-white" aria-hidden="true" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-bold text-white leading-tight truncate">MediCare HMS</p>
+          <p className="text-sm font-bold text-white leading-tight truncate">HMS</p>
           <p className="text-[10px] text-white/50 leading-tight truncate">Hospital Management System</p>
         </div>
       </div>

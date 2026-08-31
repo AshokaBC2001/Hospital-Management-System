@@ -399,7 +399,7 @@ function Billing() {
                     <HeartPulse className="w-6 h-6 text-white" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="text-base font-bold text-slate-900">MediCare HMS</p>
+                    <p className="text-base font-bold text-slate-900">HMS</p>
                     <p className="text-xs text-slate-500">123 Health Avenue, Medical District</p>
                     <p className="text-xs text-slate-500">contact@medicarehms.com · +1 555 0100</p>
                   </div>

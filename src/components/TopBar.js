@@ -24,7 +24,7 @@ const PAGE_META = {
 function TopBar() {
   const location = useLocation();
   const { userData, changePassword } = useAuth();
-  const meta = PAGE_META[location.pathname] || { title: 'MediCare HMS', subtitle: '' };
+  const meta = PAGE_META[location.pathname] || { title: 'HMS', subtitle: '' };
   const today = format(new Date(), 'EEEE, dd MMMM yyyy');
 
   const [settingsOpen, setSettingsOpen] = useState(false);

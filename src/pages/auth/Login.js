@@ -67,7 +67,7 @@ function Login() {
           <div className="w-14 h-14 rounded-xl bg-blue-600 flex items-center justify-center mb-4">
             <HeartPulse className="w-8 h-8 text-white" aria-hidden="true" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">MediCare HMS</h1>
+          <h1 className="text-2xl font-bold text-slate-900">HMS</h1>
           <p className="mt-1 text-sm text-slate-500">Hospital Management System</p>
         </div>
 
