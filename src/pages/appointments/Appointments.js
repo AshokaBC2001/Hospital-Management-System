@@ -11,7 +11,8 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import StatusBadge from '../../components/ui/StatusBadge';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
-import { Input, Textarea, Field } from '../../components/ui/FormField';
+import { Input, Textarea } from '../../components/ui/FormField';
+import SearchableSelect from '../../components/ui/SearchableSelect';
 import useCollection from '../../hooks/useCollection';
 import { todayISO, formatDate } from '../../utils/helpers';
 
@@ -41,8 +42,6 @@ function Appointments() {
   const [editing, setEditing] = useState(null);
   const [cancelling, setCancelling] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
-  const [patientSearch, setPatientSearch] = useState('');
-  const [doctorSearch, setDoctorSearch] = useState('');
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
@@ -78,25 +77,9 @@ function Appointments() {
       .sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.time || '').localeCompare(a.time || ''));
   }, [appointments, statusFilter, search, dateFilter, customFrom, customTo]);
 
-  const filteredPatients = useMemo(() => {
-    const term = patientSearch.trim().toLowerCase();
-    return patients.filter(
-      (p) => !term || p.name?.toLowerCase().includes(term) || p.patientId?.toLowerCase().includes(term)
-    );
-  }, [patients, patientSearch]);
-
-  const filteredDoctors = useMemo(() => {
-    const term = doctorSearch.trim().toLowerCase();
-    return doctors.filter(
-      (d) => !term || d.name?.toLowerCase().includes(term) || d.specialization?.toLowerCase().includes(term)
-    );
-  }, [doctors, doctorSearch]);
-
   const openAdd = () => {
     setEditing(null);
     setForm(EMPTY_FORM);
-    setPatientSearch('');
-    setDoctorSearch('');
     setErrors({});
     setModalOpen(true);
   };
@@ -110,8 +93,6 @@ function Appointments() {
       time: a.time || '09:00',
       notes: a.notes || '',
     });
-    setPatientSearch('');
-    setDoctorSearch('');
     setErrors({});
     setModalOpen(true);
   };
@@ -354,68 +335,36 @@ function Appointments() {
       >
         <form onSubmit={handleSubmit} noValidate>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Patient" required error={errors.patientId}>
-              <input
-                type="search"
-                className="input-field mb-2"
-                placeholder="Search patients..."
-                value={patientSearch}
-                onChange={(e) => setPatientSearch(e.target.value)}
-                aria-label="Search patients"
-              />
-              <select
-                className="input-field cursor-pointer"
-                value={form.patientId}
-                onChange={(e) => {
-                  setForm((f) => ({ ...f, patientId: e.target.value }));
-                  setErrors((prev) => ({ ...prev, patientId: undefined }));
-                }}
-                size={Math.min(Math.max(filteredPatients.length, 2), 5)}
-              >
-                {filteredPatients.length === 0 ? (
-                  <option disabled value="">
-                    No patients found
-                  </option>
-                ) : (
-                  filteredPatients.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.patientId} — {p.name}
-                    </option>
-                  ))
-                )}
-              </select>
-            </Field>
-            <Field label="Doctor" required error={errors.doctorId}>
-              <input
-                type="search"
-                className="input-field mb-2"
-                placeholder="Search doctors..."
-                value={doctorSearch}
-                onChange={(e) => setDoctorSearch(e.target.value)}
-                aria-label="Search doctors"
-              />
-              <select
-                className="input-field cursor-pointer"
-                value={form.doctorId}
-                onChange={(e) => {
-                  setForm((f) => ({ ...f, doctorId: e.target.value }));
-                  setErrors((prev) => ({ ...prev, doctorId: undefined }));
-                }}
-                size={Math.min(Math.max(filteredDoctors.length, 2), 5)}
-              >
-                {filteredDoctors.length === 0 ? (
-                  <option disabled value="">
-                    No doctors found
-                  </option>
-                ) : (
-                  filteredDoctors.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} — {d.specialization}
-                    </option>
-                  ))
-                )}
-              </select>
-            </Field>
+            <SearchableSelect
+              label="Patient"
+              required
+              error={errors.patientId}
+              placeholder="Select patient..."
+              emptyMessage="No patients found"
+              value={form.patientId}
+              onChange={(val) => {
+                setForm((f) => ({ ...f, patientId: val }));
+                setErrors((prev) => ({ ...prev, patientId: undefined }));
+              }}
+              options={patients.map((p) => ({ value: p.id, label: p.name, hint: p.patientId }))}
+            />
+            <SearchableSelect
+              label="Doctor"
+              required
+              error={errors.doctorId}
+              placeholder="Select doctor..."
+              emptyMessage="No doctors found"
+              value={form.doctorId}
+              onChange={(val) => {
+                setForm((f) => ({ ...f, doctorId: val }));
+                setErrors((prev) => ({ ...prev, doctorId: undefined }));
+              }}
+              options={doctors.map((d) => ({
+                value: d.id,
+                label: d.name,
+                hint: [d.specialization, d.department].filter(Boolean).join(' · '),
+              }))}
+            />
             <Input
               label="Date"
               required
