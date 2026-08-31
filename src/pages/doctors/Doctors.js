@@ -9,7 +9,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import StatusBadge from '../../components/ui/StatusBadge';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
-import { Input, Select } from '../../components/ui/FormField';
+import { Input, Select, Field } from '../../components/ui/FormField';
 import useCollection from '../../hooks/useCollection';
 import { getInitials, DEPARTMENTS, formatDate } from '../../utils/helpers';
 
@@ -20,9 +20,29 @@ const EMPTY_FORM = {
   contact: '',
   email: '',
   qualification: '',
-  schedule: '',
+  scheduleDays: [],
+  scheduleStart: '09:00',
+  scheduleEnd: '17:00',
   availability: 'Available',
 };
+
+const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+// "13:30" -> "1:30 PM"
+function formatTime12h(time) {
+  if (!time) return '';
+  const [h, m] = time.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${period}`;
+}
+
+// Compose the display string, e.g. "Mon, Wed, Fri · 9:00 AM – 5:00 PM"
+function composeSchedule(days, start, end) {
+  if (days.length === 0) return '';
+  const orderedDays = WEEK_DAYS.filter((d) => days.includes(d));
+  return `${orderedDays.join(', ')} · ${formatTime12h(start)} – ${formatTime12h(end)}`;
+}
 
 function validate(form) {
   const errors = {};
@@ -32,6 +52,10 @@ function validate(form) {
   else if (!/^[\d+\-() ]{7,20}$/.test(form.contact.trim())) errors.contact = 'Enter a valid phone number.';
   if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) errors.email = 'Enter a valid email address.';
   if (!form.qualification.trim()) errors.qualification = 'Qualification is required.';
+  if (form.scheduleDays.length > 0) {
+    if (!form.scheduleStart || !form.scheduleEnd) errors.schedule = 'Set both start and end times.';
+    else if (form.scheduleEnd <= form.scheduleStart) errors.schedule = 'End time must be after start time.';
+  }
   return errors;
 }
 
@@ -78,7 +102,9 @@ function Doctors() {
       contact: d.contact || '',
       email: d.email || '',
       qualification: d.qualification || '',
-      schedule: d.schedule || '',
+      scheduleDays: d.scheduleDays || [],
+      scheduleStart: d.scheduleStart || '09:00',
+      scheduleEnd: d.scheduleEnd || '17:00',
       availability: d.availability || 'Available',
     });
     setErrors({});
@@ -107,7 +133,7 @@ function Doctors() {
         contact: form.contact.trim(),
         email: form.email.trim(),
         qualification: form.qualification.trim(),
-        schedule: form.schedule.trim(),
+        schedule: composeSchedule(form.scheduleDays, form.scheduleStart, form.scheduleEnd),
       };
       if (editing) {
         await updateDoc(doc(db, 'doctors', editing.id), data);
@@ -328,13 +354,77 @@ function Doctors() {
               error={errors.email}
               placeholder="doctor@hospital.com"
             />
-            <Input
-              label="Schedule"
-              name="schedule"
-              value={form.schedule}
-              onChange={handleChange}
-              placeholder="e.g. Mon–Fri, 9:00 AM – 5:00 PM"
-            />
+            <Field label="Schedule" error={errors.schedule} className="sm:col-span-2">
+              <div className="flex flex-wrap gap-1.5 mb-3" role="group" aria-label="Working days">
+                {WEEK_DAYS.map((day) => {
+                  const selected = form.scheduleDays.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => {
+                        setForm((f) => ({
+                          ...f,
+                          scheduleDays: selected
+                            ? f.scheduleDays.filter((d) => d !== day)
+                            : [...f.scheduleDays, day],
+                        }));
+                        setErrors((prev) => ({ ...prev, schedule: undefined }));
+                      }}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
+                        selected
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400 hover:text-blue-600'
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <label htmlFor="scheduleStart" className="block text-xs text-slate-500 mb-1">
+                    From
+                  </label>
+                  <input
+                    id="scheduleStart"
+                    type="time"
+                    className="input-field"
+                    value={form.scheduleStart}
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, scheduleStart: e.target.value }));
+                      setErrors((prev) => ({ ...prev, schedule: undefined }));
+                    }}
+                    disabled={form.scheduleDays.length === 0}
+                  />
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="scheduleEnd" className="block text-xs text-slate-500 mb-1">
+                    To
+                  </label>
+                  <input
+                    id="scheduleEnd"
+                    type="time"
+                    className="input-field"
+                    value={form.scheduleEnd}
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, scheduleEnd: e.target.value }));
+                      setErrors((prev) => ({ ...prev, schedule: undefined }));
+                    }}
+                    disabled={form.scheduleDays.length === 0}
+                  />
+                </div>
+              </div>
+              {form.scheduleDays.length > 0 ? (
+                <p className="mt-2 text-xs text-slate-500">
+                  {composeSchedule(form.scheduleDays, form.scheduleStart, form.scheduleEnd)}
+                </p>
+              ) : (
+                <p className="mt-2 text-xs text-slate-400">Select the working days, then set the time range.</p>
+              )}
+            </Field>
             <Select label="Availability" required name="availability" value={form.availability} onChange={handleChange}>
               <option>Available</option>
               <option>Unavailable</option>
