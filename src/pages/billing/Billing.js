@@ -393,7 +393,7 @@ function Billing() {
         {viewing && (
           <div>
             <div className="print-area border border-slate-200 rounded-lg p-6">
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
                     <HeartPulse className="w-6 h-6 text-white" aria-hidden="true" />

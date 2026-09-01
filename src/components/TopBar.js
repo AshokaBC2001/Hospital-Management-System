@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Search, Bell, Settings } from 'lucide-react';
+import { Search, Bell, Settings, Menu } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
@@ -21,7 +21,7 @@ const PAGE_META = {
   '/reports': { title: 'Reports', subtitle: 'Analytics and insights' },
 };
 
-function TopBar() {
+function TopBar({ onMenuClick = () => {} }) {
   const location = useLocation();
   const { userData, changePassword } = useAuth();
   const meta = PAGE_META[location.pathname] || { title: 'HMS', subtitle: '' };
@@ -64,10 +64,20 @@ function TopBar() {
     'p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer';
 
   return (
-    <header className="fixed top-0 left-[220px] right-0 h-[52px] bg-white border-b border-slate-200 flex items-center justify-between px-6 z-30">
-      <div className="flex items-baseline gap-3 min-w-0">
-        <h1 className="text-[15px] font-semibold text-slate-900 whitespace-nowrap">{meta.title}</h1>
-        <p className="text-xs text-slate-400 truncate hidden sm:block">{meta.subtitle}</p>
+    <header className="fixed top-0 left-0 md:left-[220px] right-0 h-[52px] bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 z-30">
+      <div className="flex items-center gap-2 min-w-0">
+        <button
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Open navigation menu"
+          className="md:hidden p-2 -ml-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+        >
+          <Menu className="w-5 h-5" aria-hidden="true" />
+        </button>
+        <div className="flex items-baseline gap-3 min-w-0">
+          <h1 className="text-[15px] font-semibold text-slate-900 whitespace-nowrap">{meta.title}</h1>
+          <p className="text-xs text-slate-400 truncate hidden lg:block">{meta.subtitle}</p>
+        </div>
       </div>
 
       <div className="flex items-center gap-1">
