@@ -47,7 +47,7 @@ const NAV_SECTIONS = [
   },
 ];
 
-function Sidebar() {
+function Sidebar({ open = false, onClose = () => {} }) {
   const { userData, userRole, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -62,7 +62,21 @@ function Sidebar() {
   };
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-[220px] bg-sidebar flex flex-col z-40">
+    <>
+      {/* Mobile backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={`fixed inset-y-0 left-0 w-[220px] bg-sidebar flex flex-col z-50 transition-transform md:translate-x-0 ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        aria-label="Sidebar"
+      >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
         <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
@@ -89,6 +103,7 @@ function Sidebar() {
                   key={item.key}
                   to={item.to}
                   end={item.to === '/'}
+                  onClick={onClose}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium transition-colors cursor-pointer border-r-2 ${
                       isActive
@@ -125,7 +140,8 @@ function Sidebar() {
           <LogOut className="w-4 h-4" aria-hidden="true" />
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 
